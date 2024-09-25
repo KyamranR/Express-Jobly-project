@@ -16,7 +16,14 @@ class Company {
    * Throws BadRequestError if company already in database.
    * */
 
-  static async create({ handle, name, description, numEmployees, logoUrl }) {
+  static async create({
+    handle,
+    name,
+    description,
+    numEmployees,
+    logoUrl,
+    jobs,
+  }) {
     const duplicateCheck = await db.query(
       `SELECT handle
            FROM companies
@@ -35,6 +42,17 @@ class Company {
       [handle, name, description, numEmployees, logoUrl]
     );
     const company = result.rows[0];
+
+    if (jobs && jobs.length > 0) {
+      const jobPromises = jobs.map((job) => {
+        return db.query(
+          `INSERT INTO jobs (title, salary, equity, company_handle)
+               VALUES ($1, $2, $3, $4)`,
+          [job.title, job.salary, job.equity, handle]
+        );
+      });
+      await Promise.all(jobPromises);
+    }
 
     return company;
   }
@@ -104,6 +122,14 @@ class Company {
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
+    const jobRes = await db.query(
+      `SELECT id, title, salary, equity, company_handle AS "companyHandle"
+       FROM jobs
+       WHERE company_handle = $1`,
+      [handle]
+    );
+
+    company.jobs = jobRes.rows;
     return company;
   }
 

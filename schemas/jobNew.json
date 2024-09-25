@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "salary": { "type": "integer" },
+    "equity": {
+      "type": "string",
+      "pattern": "^0(\\.\\d{1,2})?$|^1$"
+    },
+    "companyHandle": { "type": "string" }
+  },
+  "required": ["title", "companyHandle"],
+  "additionalProperties": false
+}
